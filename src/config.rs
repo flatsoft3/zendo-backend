@@ -4,7 +4,8 @@ use serde::Deserialize;
 pub struct AppConfig{
     pub app_name: String,
     pub app_env: String,
-    pub app_port: u16
+    pub app_port: u16,
+    pub database_url: String
 }
 
 impl AppConfig {
