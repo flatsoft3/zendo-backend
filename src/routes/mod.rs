@@ -8,5 +8,6 @@ pub mod user_routes;
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/health-check", get(health::health_check))
-        .route("/users/find-by-id", get(user_routes::find_by_id))
+        .merge(user_routes::router())
+        
 }
