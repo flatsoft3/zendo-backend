@@ -15,7 +15,7 @@ pub struct User {
 }
 
 impl User {
-    pub async fn find_by_id(db_pool: PgPool, id: Uuid) -> Result<Option<User>, AppError> {
+    pub async fn find_by_id(db_pool: &PgPool, id: Uuid) -> Result<Option<User>, AppError> {
         match sqlx::query_as!(
             User,
             r#"
@@ -33,7 +33,7 @@ impl User {
             "#,
             id
         )
-        .fetch_optional(&db_pool)
+        .fetch_optional(db_pool)
         .await
         {
             Ok(result) => Ok(result),
@@ -72,8 +72,8 @@ impl User {
         email: &str,
         password: &str,
         password_reset_token: Option<&str>,
-    ) -> Result<Self, sqlx::Error> {
-        sqlx::query_as!(
+    ) -> Result<Self, AppError> {
+        match sqlx::query_as!(
             User,
             r#"
                 INSERT INTO users (id,  email,  full_name,  password,  password_reset_token)
@@ -86,9 +86,13 @@ impl User {
             full_name,
             email,
             password,
-            password_reset_token
+            password_reset_token,
         )
         .fetch_one(db_pool)
         .await
+        {
+            Ok(new_user) => Ok(new_user),
+            Err(e) => Err(AppError::from(e)),
+        }
     }
 }
