@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;
 
+#[derive(Debug)]
 pub struct User {
     pub id: Uuid,
     pub email: String,
@@ -44,7 +45,7 @@ impl User {
     }
 
     pub async fn find_by_email(db_pool: &PgPool, email: &str) -> Result<Option<Self>, sqlx::Error> {
-        sqlx::query_as!(
+       sqlx::query_as!(
             User,
             r#"
                 SELECT id, 
@@ -57,7 +58,7 @@ impl User {
                 updated_at
                 
                 FROM users
-                WHERE email = $1
+                WHERE LOWER(email) = LOWER($1)
             "#,
             email
         )
@@ -83,8 +84,8 @@ impl User {
                 RETURNING *
             "#,
             id,
-            full_name,
             email,
+            full_name,
             password,
             password_reset_token,
         )

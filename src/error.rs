@@ -1,41 +1,72 @@
 use axum::{
+    Json,
     http::StatusCode,
     response::{IntoResponse, Response},
 };
-use thiserror::Error;
+// use thiserror::Error;
 
-#[derive(Debug, Error)]
-pub enum AppError{
-    #[error("resource not found")]
-    NotFound,
+use crate::common::structs::ApiResponse;
 
-    #[error("bad request: {0}")]
-    BadRequest(String),
+// #[derive(Debug, Error)]
+// pub enum AppError{
+//     #[error("resource not found")]
+//     NotFound,
 
-    #[error("database error")]
-    Database(#[from] sqlx::Error),
+//     #[error("bad request: {0}")]
+//     BadRequest(String),
 
-    #[error("internal server error")]
-    Internal,
+//     #[error("database error")]
+//     Database(#[from] sqlx::Error),
+
+//     #[error("internal server error")]
+//     Internal,
+// }
+
+#[derive(Debug)] 
+pub struct AppError {
+    status: StatusCode,
+    message: String,
 }
-impl IntoResponse for AppError {
-    fn into_response (self) -> Response {
-        let status = match self {
-            AppError::NotFound => StatusCode::NOT_FOUND,
-            AppError::BadRequest(_) => StatusCode::BAD_REQUEST,
-            AppError::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            AppError::Internal => StatusCode::INTERNAL_SERVER_ERROR,
-        };
 
-        (status, self.to_string()).into_response()
+//helper methods for app error
+impl AppError {
+    pub fn not_found(message: impl Into<String>) -> Self {
+        Self {
+            status: StatusCode::NOT_FOUND,
+            message: message.into(),
+        }
+    }
+
+    pub fn bad_request(message: impl Into<String>) -> Self {
+        Self {
+            status: StatusCode::BAD_REQUEST,
+            message: message.into(),
+        }
+    }
+    pub fn internal(message: impl Into<String>) -> Self {
+        Self {
+            status: StatusCode::INTERNAL_SERVER_ERROR,
+            message: message.into(),
+        }
     }
 }
 
-// impl From<sqlx::Error> for AppError {
-//     fn from(error: sqlx::Error) -> Self {
-//         match error {
-//             sqlx::Error::RowNotFound => AppError::NotFound("Resource not found".into()),
-//             _ => AppError::DatabaseError(error.to_string()),
-//         }
-//     }
-// }
+//required by axum to wire app error into http response
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response {
+        let body: ApiResponse<()>  = ApiResponse::error(self.status.as_u16(), self.message);
+
+        (self.status, Json(body)).into_response()
+    }
+}
+
+//convert sqlx error into app error
+impl From<sqlx::Error> for AppError {
+    fn from(error: sqlx::Error) -> Self {
+        AppError::internal(error.to_string())
+        // match error {
+        //     sqlx::Error::RowNotFound => AppError::NotFound("Resource not found".into()),
+        //     _ => AppError::DatabaseError(error.to_string()),
+        // }
+    }
+}
