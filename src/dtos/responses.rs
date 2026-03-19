@@ -39,3 +39,10 @@ impl UserCreatedResponse {
         usr.into()
     }
 }
+
+
+#[derive(serde::Serialize)]
+pub struct LoginResponse {
+    pub access_token: String,
+    pub user_info: UserCreatedResponse
+}

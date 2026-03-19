@@ -1,6 +1,13 @@
 use crate::{
-    common::{structs::ApiResponse, util},
-    dtos::{requests::CreateUserRequest, responses::UserCreatedResponse},
+    auth::jwt::JwtUtil,
+    common::{
+        structs::ApiResponse,
+        util::{self, verify_password},
+    },
+    dtos::{
+        requests::{CreateUserRequest, LoginRequest},
+        responses::{LoginResponse, UserCreatedResponse},
+    },
     error::AppError,
     state::AppState,
 };
@@ -49,8 +56,10 @@ async fn create(
             .await
             {
                 Ok(new_user) => {
-                    let response: ApiResponse<UserCreatedResponse> =
-                        ApiResponse::success("User was created successfully", Some(new_user.into()));
+                    let response: ApiResponse<UserCreatedResponse> = ApiResponse::success(
+                        "User was created successfully",
+                        Some(new_user.into()),
+                    );
 
                     Ok((StatusCode::OK, Json(response)))
                 }
@@ -60,8 +69,37 @@ async fn create(
     }
 }
 
+async fn login(
+    State(state): State<AppState>,
+    Json(payload): Json<LoginRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    match User::find_by_email(&state.db_pool, &payload.email).await {
+        Err(e) => Err(e.into()),
+        Ok(None) => Err(AppError::bad_request("User does not exists")),
+        Ok(Some(user)) => {
+            if !verify_password(&user.password, payload.password.as_str()) {
+                return Err(AppError::bad_request("Invalid credentials"));
+            }
+
+            let token = JwtUtil {
+                config: state.config.clone(),
+                key: state.config.jwt_user_key.clone(),
+                exp: Some(state.config.jwt_expiry.clone().into()),
+            }
+            .generate_token(&user.id.to_string(), &user.full_name, "basic_user")
+            .map_err(|_| AppError::internal("Failed to generate token"))?;
+
+            Ok(Json(LoginResponse {
+                access_token: token,
+                user_info: user.into(),
+            }))
+        }
+    }
+}
+
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/users/find-by-id", get(find_by_id))
         .route("/users/create", post(create))
+        .route("/users/login", post(login))
 }

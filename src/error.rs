@@ -70,3 +70,9 @@ impl From<sqlx::Error> for AppError {
         // }
     }
 }
+
+impl From<jsonwebtoken::errors::Error> for AppError {
+    fn from(error: jsonwebtoken::errors::Error) -> Self {
+        AppError::internal(error.to_string())
+    }
+}
