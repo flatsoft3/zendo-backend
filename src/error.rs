@@ -49,6 +49,12 @@ impl AppError {
             message: message.into(),
         }
     }
+    pub fn unauthorized(message: impl Into<String>) -> Self {
+        Self {
+            status: StatusCode::UNAUTHORIZED,
+            message: message.into(),
+        }
+    }
 }
 
 //required by axum to wire app error into http response
