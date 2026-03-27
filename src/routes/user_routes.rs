@@ -81,13 +81,16 @@ async fn login(
                 return Err(AppError::bad_request("Invalid credentials"));
             }
 
-            let token = JwtUtil {
-                config: state.config.clone(),
-                key: state.config.jwt_user_key.clone(),
-                exp: Some(state.config.jwt_expiry.clone().into()),
-            }
-            .generate_token(&user.id.to_string(), &user.full_name, "basic_user")
-            .map_err(|_| AppError::internal("Failed to generate token"))?;
+            let token = JwtUtil
+                ::generate_token(
+                    &state.config.app_url,
+                    Some(state.config.jwt_expiry.into()),
+                    &state.config.jwt_user_key,
+                    &user.id.to_string(),
+                    &user.full_name,
+                    "basic_user",
+                )
+                .map_err(|_| AppError::internal("Failed to generate token"))?;
 
             Ok(Json(LoginResponse {
                 access_token: token,
