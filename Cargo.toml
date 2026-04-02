@@ -21,3 +21,4 @@ tracing = "0.1.44"
 tracing-subscriber = { version = "0.3.22", features = ["env-filter"] }
 uuid = { version = "1.7", features = ["v4", "serde"] }
 async-trait = "0.1"
+validator = { version = "0.20.0", features = ["derive"] }

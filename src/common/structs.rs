@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -6,6 +8,8 @@ pub struct ApiResponse<T: Serialize> {
     pub description: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<T>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub errors: Option<HashMap<String, String>>
 }
 
 //helper methods
@@ -15,15 +19,27 @@ impl<T: Serialize> ApiResponse<T> {
         Self {
             status: 200,
             description: description.into(),
-            data: data,
+            data,
+            errors: None
         }
     }
 
     pub fn error(status: u16, description: impl Into<String>) -> Self {
         Self {
-            status: status,
+            status,
             description: description.into(),
             data: None,
+            errors: None
+        }
+    }
+
+
+    pub fn validation_error(status: u16, description: impl Into<String>, errors: HashMap<String, String>) -> Self {
+        Self {
+            status,
+            description: description.into(),
+            data: None,
+            errors: Some(errors)
         }
     }
 }

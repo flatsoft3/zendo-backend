@@ -1,5 +1,5 @@
 use crate::{
-    auth::jwt::JwtUtil,
+    auth::{extractor::AuthUser, jwt::JwtUtil},
     common::{
         structs::ApiResponse,
         util::{self, verify_password},
@@ -18,6 +18,7 @@ use axum::{
     response::IntoResponse,
     routing::{get, post},
 };
+use validator::Validate;
 
 use crate::models::user::User;
 use uuid::Uuid;
@@ -41,6 +42,10 @@ async fn create(
     State(state): State<AppState>,
     Json(payload): Json<CreateUserRequest>,
 ) -> Result<impl IntoResponse, AppError> {
+
+    payload.validate()
+        .map_err(|e| AppError::validation_error(e))?;
+    
     match User::find_by_email(&state.db_pool, &payload.email).await {
         Err(e) => Err(e.into()),
         Ok(Some(_)) => Err(AppError::bad_request("User already exists")),
@@ -73,6 +78,10 @@ async fn login(
     State(state): State<AppState>,
     Json(payload): Json<LoginRequest>,
 ) -> Result<impl IntoResponse, AppError> {
+    payload.validate()
+        .map_err(|e| AppError::validation_error(e))?;
+
+    
     match User::find_by_email(&state.db_pool, &payload.email).await {
         Err(e) => Err(e.into()),
         Ok(None) => Err(AppError::bad_request("User does not exists")),
@@ -81,16 +90,15 @@ async fn login(
                 return Err(AppError::bad_request("Invalid credentials"));
             }
 
-            let token = JwtUtil
-                ::generate_token(
-                    &state.config.app_url,
-                    Some(state.config.jwt_expiry.into()),
-                    &state.config.jwt_user_key,
-                    &user.id.to_string(),
-                    &user.full_name,
-                    "basic_user",
-                )
-                .map_err(|_| AppError::internal("Failed to generate token"))?;
+            let token = JwtUtil::generate_token(
+                &state.config.app_url,
+                Some(state.config.jwt_expiry.into()),
+                &state.config.jwt_user_key,
+                &user.id.to_string(),
+                &user.full_name,
+                "basic_user",
+            )
+            .map_err(|_| AppError::internal("Failed to generate token"))?;
 
             Ok(Json(LoginResponse {
                 access_token: token,
@@ -100,9 +108,26 @@ async fn login(
     }
 }
 
+async fn profile(
+    State(state): State<AppState>,
+    auth_user: AuthUser,
+) -> Result<impl IntoResponse, AppError> {
+    match User::find_by_id(&state.db_pool, auth_user.user_id).await {
+        Err(e) => Err(e.into()),
+        Ok(None) => Err(AppError::bad_request("User does not exists")),
+        Ok(Some(user)) => {
+            let response: ApiResponse<UserCreatedResponse> =
+                ApiResponse::success("User profile", Some(user.into()));
+
+            Ok((StatusCode::OK, Json(response)))
+        }
+    }
+}
+
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/users/find-by-id", get(find_by_id))
         .route("/users/create", post(create))
         .route("/users/login", post(login))
+        .route("/users/profile", get(profile))
 }

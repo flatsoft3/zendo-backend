@@ -3,16 +3,16 @@
 use std::fs;
 
 use tower_http::trace::TraceLayer;
-use tracing::{error, info};
-use tracing_subscriber::{EnvFilter, fmt};
+use tracing::info;
+use tracing_subscriber::EnvFilter;
 
 // use axum::Router;
 use zendo::state::AppState;
 
-use zendo::config::AppConfig;
 use chrono::Local;
-use std::path::Path;
 use sqlx::postgres::PgPoolOptions;
+use std::path::Path;
+use zendo::config::AppConfig;
 
 #[tokio::main]
 async fn main() {
@@ -21,10 +21,9 @@ async fn main() {
     let log_dir = Path::new("/var/tmp/log/zendo");
     fs::create_dir_all(log_dir).expect("Failed to create log directory");
 
-    let log_file = std::fs::File::create(log_dir.join(format!(
-        "zendo-{}.log",
-        Local::now().format("%Y-%m-%d"),
-    )))
+    let log_file = std::fs::File::create(
+        log_dir.join(format!("zendo-{}.log", Local::now().format("%Y-%m-%d"),)),
+    )
     .expect("Failed to create log file");
 
     tracing_subscriber::fmt()

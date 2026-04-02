@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::{
     auth::jwt::{Claims, JwtUtil},
     config::AppConfig,
@@ -7,9 +9,10 @@ use crate::{
 use axum::extract::FromRequestParts;
 use jsonwebtoken::dangerous::insecure_decode;
 use axum::{ http::request::Parts};
+use uuid::Uuid;
 
 pub struct AuthUser {
-    pub user_id: String,
+    pub user_id: Uuid,
     pub full_name: String,
     pub user_type: String,
 }
@@ -27,11 +30,11 @@ impl FromRequestParts<AppState> for AuthUser {
                 .headers
                 .get("Authorization")
                 .and_then(|v| v.to_str().ok())
-                .ok_or(AppError::bad_request("Missing token"))?;
+                .ok_or(AppError::unauthorized("Missing token"))?;
 
             let token = auth_header
                 .strip_prefix("Bearer ")
-                .ok_or(AppError::bad_request("Invalid token format"))?;
+                .ok_or(AppError::unauthorized("Invalid token format"))?;
 
             let unverified = insecure_decode::<Claims>(token)
                 .map_err(|_| AppError::unauthorized("Unauthorized to access resource"))?;
@@ -40,10 +43,10 @@ impl FromRequestParts<AppState> for AuthUser {
             let jwt_key = get_key(&state.config, &user_type);
 
             let claims = JwtUtil::verify_token(jwt_key, token)
-                .map_err(|_| AppError::bad_request("Invalid token"))?;
+                .map_err(|_| AppError::unauthorized("Invalid token"))?;
 
             Ok(AuthUser {
-                user_id: claims.sub,
+                user_id: Uuid::from_str(&claims.sub).unwrap(),
                 full_name: claims.full_name,
                 user_type: claims.user_type,
             })
