@@ -5,6 +5,29 @@ use uuid::Uuid;
 use crate::models::user::User;
 
 #[derive(Serialize)]
+pub struct CompanyDetailsResponse {
+    pub user_id: Uuid,
+    pub company_name: Option<String>,
+    pub rc_number: Option<String>,
+    pub tax_id: Option<String>,
+    pub company_address: Option<String>,
+    pub updated_at: DateTime<Utc>,
+}
+
+impl From<User> for CompanyDetailsResponse {
+    fn from(user: User) -> Self {
+        Self {
+            user_id: user.id,
+            company_name: user.company_name,
+            rc_number: user.rc_number,
+            tax_id: user.tax_id,
+            company_address: user.company_address,
+            updated_at: user.updated_at,
+        }
+    }
+}
+
+#[derive(Serialize)]
 pub struct UserCreatedResponse {
     pub id: Uuid,
     pub email: String,
@@ -12,6 +35,14 @@ pub struct UserCreatedResponse {
     pub middle_name: Option<String>,
     pub last_name: String,
     pub phone_number: String,
+    pub company_name: Option<String>,
+    pub rc_number: Option<String>,
+    pub tax_id: Option<String>,
+    pub company_address: Option<String>,
+    pub kyc_tier: i16,
+    pub kyc_verified_at: Option<DateTime<Utc>>,
+    pub account_status: String,
+    pub email_verified_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
 }
 
@@ -24,31 +55,22 @@ impl From<User> for UserCreatedResponse {
             middle_name: user.middle_name,
             last_name: user.last_name,
             phone_number: user.phone_number,
+            company_name: user.company_name,
+            rc_number: user.rc_number,
+            tax_id: user.tax_id,
+            company_address: user.company_address,
+            kyc_tier: user.kyc_tier,
+            kyc_verified_at: user.kyc_verified_at,
+            account_status: user.account_status,
+            email_verified_at: user.email_verified_at,
             created_at: user.created_at,
         }
     }
 }
 
-// impl UserCreatedResponse {
-//     pub fn get_me_from_user() -> Self {
-//         let usr: User = User {
-//             id: Uuid::new_v4(),
-//             email: "myemail@gmail.com".to_string(),
-//             full_name: "Sani Ahmad Badawa".to_string(),
-//             password: "my_password".to_string(),
-//             password_reset_token: None,
-//             is_active: true,
-//             created_at: Utc::now(),
-//             updated_at: Utc::now(),
-//         };
-
-//         usr.into()
-//     }
-// }
-
 #[derive(serde::Serialize)]
 pub struct LoginResponse {
     pub access_token: String,
-    pub token_expiry: u16,
+    pub token_expiry: u32,
     pub user_info: UserCreatedResponse,
 }

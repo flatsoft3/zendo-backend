@@ -107,4 +107,40 @@ impl User {
         Err(e) => Err(AppError::from(e)),
     }
 }
+
+    pub async fn update_company_details(
+        db_pool: &PgPool,
+        user_id: Uuid,
+        company_name: &str,
+        rc_number: &str,
+        tax_id: Option<&str>,
+        company_address: &str,
+    ) -> Result<Self, AppError> {
+        match sqlx::query_as!(
+            User,
+            r#"
+            UPDATE users
+            SET
+                company_name    = $2,
+                rc_number       = $3,
+                tax_id          = $4,
+                company_address = $5,
+                updated_at      = CURRENT_TIMESTAMP
+            WHERE id = $1
+            RETURNING *
+            "#,
+            user_id,
+            company_name,
+            rc_number,
+            tax_id,
+            company_address,
+        )
+        .fetch_one(db_pool)
+        .await
+        {
+            Ok(updated_user) => Ok(updated_user),
+            Err(sqlx::Error::RowNotFound) => Err(AppError::not_found("User not found")),
+            Err(e) => Err(AppError::from(e)),
+        }
+    }
 }

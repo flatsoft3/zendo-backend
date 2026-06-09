@@ -8,7 +8,7 @@ pub struct AppConfig{
     pub database_url: String,
     pub app_url: String,
     pub jwt_user_key: String,
-    pub jwt_expiry: u16,
+    pub jwt_expiry: u32,
 }
 
 impl AppConfig {

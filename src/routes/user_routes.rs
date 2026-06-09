@@ -5,8 +5,8 @@ use crate::{
         util::{self, verify_password},
     },
     dtos::{
-        requests::{CreateUserRequest, LoginRequest},
-        responses::{LoginResponse, UserCreatedResponse},
+        requests::{CreateUserRequest, LoginRequest, UpdateCompanyRequest},
+        responses::{CompanyDetailsResponse, LoginResponse, UserCreatedResponse},
     },
     error::AppError,
     state::AppState,
@@ -16,7 +16,7 @@ use axum::{
     extract::State,
     http::StatusCode,
     response::IntoResponse,
-    routing::{get, post},
+    routing::{get, post, put},
 };
 use validator::Validate;
 
@@ -100,7 +100,7 @@ async fn login(
 
             let token = JwtUtil::generate_token(
                 &state.config.app_url,
-                Some(state.config.jwt_expiry.into()),
+            Some(state.config.jwt_expiry as usize),
                 &state.config.jwt_user_key,
                 &user.id.to_string(),
                 format!(
@@ -139,10 +139,41 @@ async fn profile(
     }
 }
 
+async fn update_company_details(
+    State(state): State<AppState>,
+    auth_user: AuthUser,
+    Json(payload): Json<UpdateCompanyRequest>,
+) -> Result<impl IntoResponse, AppError> {
+    payload
+        .validate()
+        .map_err(|e| AppError::validation_error(e))?;
+
+    match User::update_company_details(
+        &state.db_pool,
+        auth_user.user_id,
+        &payload.company_name,
+        &payload.rc_number,
+        payload.tax_id.as_deref(),
+        &payload.company_address,
+    )
+    .await
+    {
+        Ok(updated_user) => {
+            let response: ApiResponse<CompanyDetailsResponse> = ApiResponse::success(
+                "Company details updated successfully",
+                Some(updated_user.into()),
+            );
+            Ok((StatusCode::OK, Json(response)))
+        }
+        Err(e) => Err(e),
+    }
+}
+
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/users/find-by-id", get(find_by_id))
         .route("/users/create", post(create))
         .route("/users/login", post(login))
         .route("/users/profile", get(profile))
+        .route("/users/company-details/update", put(update_company_details))
 }

@@ -32,3 +32,18 @@ pub struct LoginRequest {
     #[validate(length(min =8,  message = "Password must be at least 8 characters"))]
     pub password: String,
 }
+
+#[derive(Deserialize, Validate)]
+pub struct UpdateCompanyRequest {
+    #[validate(length(min = 5, message = "Company name must be at least 5 characters"))]
+    pub company_name: String,
+
+    #[validate(length(min = 3, message = "RC number must be at least 3 characters"))]
+    pub rc_number: String,
+
+    #[validate(length(min = 8, message = "Tax ID must be at least 8 characters"))]
+    pub tax_id: Option<String>,
+
+    #[validate(length(min = 5, message = "Company address must be at least 5 characters"))]
+    pub company_address: String,
+}
