@@ -1,0 +1,16 @@
+an sms management platform
+
+1. User registration (user may have a company, we need company name, rc number etc)
+2. Payments And Wallets . a multi wallet system per User
+   1. Users can create wallets, with unique name for each wallet, user pair.
+   2. There is always a default main wallet for each user
+   3. Payment can be made against any wallet, user must select any wallet b4 generating invoice and making payment
+   4. For dedicated virtual bank accounts, all payments received will be credited to the main wallet. user will have the ability to change this by mapping a virtual account to a specific wallet (i.e by default, all virtual accounts will be mapped to the main wallet)
+3. sending any sms will require wallet id, where the amount will be deducted from
+4. Users can generate access tokens for sending sms from their mobile app, all access tokens must be mapped to a wallet also. this allows a single user to have multiple integrations with us in his different apps and allows him to isolate spendings for each app
+5. users will be required to register their sender Ids, which will be reviewed and subsequently be approved or rejected.
+
+SENDING SMS 
+6. We will integrate with different bulk sms providers. we will have an interface with services that each provider must provide (like sending sms, getting delivery status etc) 
+7. We will try sending sms from providers in order as defined i the config, if one fails, we try the other, until we either send the message pr exhaust the configured providers. 
+This means we must have a standard response format to be returned by each provider when an sms is sent

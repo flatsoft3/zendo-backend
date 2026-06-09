@@ -42,10 +42,10 @@ async fn create(
     State(state): State<AppState>,
     Json(payload): Json<CreateUserRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-
-    payload.validate()
+    payload
+        .validate()
         .map_err(|e| AppError::validation_error(e))?;
-    
+
     match User::find_by_email(&state.db_pool, &payload.email).await {
         Err(e) => Err(e.into()),
         Ok(Some(_)) => Err(AppError::bad_request("User already exists")),
@@ -53,8 +53,11 @@ async fn create(
             match User::create(
                 &state.db_pool,
                 Uuid::new_v4(),
-                &payload.full_name,
                 &payload.email,
+                &payload.first_name,
+                payload.middle_name.as_deref(),
+                &payload.last_name,
+                &payload.phone_number,
                 &util::hash_password(&payload.password),
                 None,
             )
@@ -78,16 +81,21 @@ async fn login(
     State(state): State<AppState>,
     Json(payload): Json<LoginRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    payload.validate()
+    payload
+        .validate()
         .map_err(|e| AppError::validation_error(e))?;
 
-    
     match User::find_by_email(&state.db_pool, &payload.email).await {
         Err(e) => Err(e.into()),
         Ok(None) => Err(AppError::bad_request("User does not exists")),
         Ok(Some(user)) => {
             if !verify_password(&user.password, payload.password.as_str()) {
                 return Err(AppError::bad_request("Invalid credentials"));
+            } else if &user.account_status != "active" {
+                return Err(AppError::unauthorized(format!(
+                    "Login failed: Your account status is {}",
+                    &user.account_status
+                )));
             }
 
             let token = JwtUtil::generate_token(
@@ -95,13 +103,20 @@ async fn login(
                 Some(state.config.jwt_expiry.into()),
                 &state.config.jwt_user_key,
                 &user.id.to_string(),
-                &user.full_name,
+                format!(
+                    "{} {} {}",
+                    &user.first_name,
+                    &user.middle_name.as_deref().unwrap_or_default(),
+                    &user.last_name
+                )
+                .as_str(),
                 "basic_user",
             )
             .map_err(|_| AppError::internal("Failed to generate token"))?;
 
             Ok(Json(LoginResponse {
                 access_token: token,
+                token_expiry: state.config.jwt_expiry,
                 user_info: user.into(),
             }))
         }
