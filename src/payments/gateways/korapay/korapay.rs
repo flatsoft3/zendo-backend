@@ -31,6 +31,20 @@ struct InitializePaymentRequest {
     pub merchant_bears_cost: bool,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct InitiatePaymentResponse {
+    pub status: bool,
+    pub message: String,
+    pub code: Option<String>,
+    pub data: Option<InitiatePaymentData>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct InitiatePaymentData {
+    pub reference: String,
+    pub checkout_url: String,
+}
+
 impl Korapay {
     fn new(config: KorapayConfig) -> Self {
         Self { config }
@@ -67,23 +81,35 @@ impl CardPaymentGateway for Korapay {
             merchant_bears_cost: true,
         };
 
-        // let http_client = reqwest::Client::new();
-        // let http_response = http_client
-        //     .post(self.config.initiate_card_payment_url)
-        //     .json(&initiate_payment_payload)
-        //     .header(
-        //         "Authorization",
-        //         format!("Bearer {}", self.config.secret_key),
-        //     )
-        //     .send()
-        //     .await
-        //     .unwrap();
+        let http_client = reqwest::Client::new();
+        let http_response = http_client
+            .post(&self.config.initiate_card_payment_url)
+            .json(&initiate_payment_payload)
+            .header(
+                "Authorization",
+                format!("Bearer {}", &self.config.secret_key),
+            )
+            .send()
+            .await
+            .unwrap();
 
-        // let body = http_response.text().await?;
+        let gateway_response: InitiatePaymentResponse = http_response.json().await?;
 
-        Ok(InitiateCardPaymentResponse::ApplicationError {
-            message: "Failed".to_string(),
-        })
+        match gateway_response.data {
+            None => {
+                return Ok(InitiateCardPaymentResponse::GatewayError {
+                    message: gateway_response.message,
+                });
+            }
+
+            Some(data) => {
+                return Ok(InitiateCardPaymentResponse::Initiated {
+                    reference: data.reference,
+                    checkout_url: data.checkout_url,
+                    gateway_reference: None,
+                });
+            }
+        }
     }
 
     async fn check_payment_status(

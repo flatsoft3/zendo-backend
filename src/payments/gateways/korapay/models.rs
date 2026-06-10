@@ -24,19 +24,7 @@ pub struct CreateVirtualAccountRequest {
 
 //responses
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct InitiatePaymentResponse {
-    pub status: bool,
-    pub message: String,
-    pub code: Option<String>,
-    pub data: Option<InitiatePaymentData>,
-}
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct InitiatePaymentData {
-    pub reference: String,
-    pub checkout_url: String,
-} 
 
 #[derive(Debug, Deserialize)]
 pub struct WebhookNotificationPayload {
