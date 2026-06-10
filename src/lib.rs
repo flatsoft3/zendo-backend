@@ -6,3 +6,4 @@ pub mod error;
 pub mod dtos;
 pub mod common;
 pub mod auth;
+pub mod db;

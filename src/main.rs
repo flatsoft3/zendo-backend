@@ -7,10 +7,9 @@ use tracing::info;
 use tracing_subscriber::EnvFilter;
 
 // use axum::Router;
-use zendo::state::AppState;
+use zendo::{db::postgres, state::AppState};
 
 use chrono::Local;
-use sqlx::postgres::PgPoolOptions;
 use std::path::Path;
 use zendo::config::AppConfig;
 
@@ -40,15 +39,9 @@ async fn main() {
         "Configuration loaded"
     );
 
-    let db = PgPoolOptions::new()
-        .max_connections(5)
-        .connect(&config.database_url)
-        .await
-        .expect("Failed to connect to database");
-
     let state = AppState {
         config: config.clone(),
-        db_pool: db,
+        db_pool: postgres::get_connection(&config).await
     };
 
     // let app = Router::new().merge(routes::router()).with_state(state);
