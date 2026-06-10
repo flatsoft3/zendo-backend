@@ -1,6 +1,13 @@
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
+pub struct KorapayConfig {
+    pub allowed_channels : String,
+    pub create_virtual_account_url: String,
+    pub initiate_card_payment_url: String,
+    pub check_payment_status_url: String,
+}
+#[derive(Debug, Clone, Deserialize)]
 pub struct AppConfig{
     pub app_name: String,
     pub app_env: String,
@@ -9,6 +16,7 @@ pub struct AppConfig{
     pub app_url: String,
     pub jwt_user_key: String,
     pub jwt_expiry: u32,
+    pub korapay: KorapayConfig
 }
 
 impl AppConfig {
@@ -17,7 +25,7 @@ impl AppConfig {
         dotenvy::dotenv().ok();
 
         let cfg = config::Config::builder()
-            .add_source(config::Environment::default())
+            .add_source(config::Environment::default().separator("__"))
             .build()
             .expect("Failed to build config");
 
