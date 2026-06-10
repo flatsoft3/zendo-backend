@@ -3,7 +3,7 @@ use std::str::FromStr;
 use crate::{
     auth::jwt::{Claims, JwtUtil},
     config::AppConfig,
-    error::AppError,
+    common::error::AppError,
     state::AppState,
 }; 
 use axum::extract::FromRequestParts;

@@ -8,7 +8,7 @@ use crate::{
         requests::{CreateUserRequest, LoginRequest, UpdateCompanyRequest},
         responses::{CompanyDetailsResponse, LoginResponse, UserCreatedResponse},
     },
-    error::AppError,
+    common::error::AppError,
     state::AppState,
 };
 use axum::{

@@ -1,4 +1,4 @@
-use crate::error::AppError;
+use crate::common::error::AppError;
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;

@@ -6,6 +6,7 @@ pub struct KorapayConfig {
     pub create_virtual_account_url: String,
     pub initiate_card_payment_url: String,
     pub check_payment_status_url: String,
+    pub secret_key: String,
 }
 #[derive(Debug, Clone, Deserialize)]
 pub struct AppConfig{

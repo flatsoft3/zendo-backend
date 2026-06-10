@@ -32,6 +32,17 @@ impl AppError {
             validation_errors: None,
         }
     }
+
+
+    pub fn bad_gateway(message: impl Into<String>) -> Self {
+       Self {
+            status: StatusCode::BAD_GATEWAY,
+            message: message.into(),
+            validation_errors: None,
+        }
+    }
+
+
     pub fn internal(message: impl Into<String>) -> Self {
         Self {
             status: StatusCode::INTERNAL_SERVER_ERROR,
@@ -107,3 +118,12 @@ impl From<jsonwebtoken::errors::Error> for AppError {
         AppError::internal(error.to_string())
     }
 }
+
+
+impl From<reqwest::Error> for AppError {
+    fn from(error: reqwest::Error) -> Self {
+        AppError::bad_gateway(error.to_string())
+    }
+}
+
+

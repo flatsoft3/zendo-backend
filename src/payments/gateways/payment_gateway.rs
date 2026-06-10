@@ -1,4 +1,4 @@
-use crate::error::AppError;
+use crate::common::error::AppError;
 use async_trait::async_trait;
 
 #[async_trait]
@@ -34,25 +34,25 @@ pub struct InitiateCardPaymentRequest {
     pub reference: String,
     pub charges_bearer: bool,
     pub email: String,
+    pub redirect_url: String,
     pub payer_name: Option<String>,
 }
-
 
 pub enum InitiateCardPaymentResponse {
     Initiated {
         reference: String,
         checkout_url: String,
-        gateway_reference: Option<String>
+        gateway_reference: Option<String>,
     },
     GatewayError {
-        message: String
+        message: String,
     },
     JsonParseError {
-        message: String
+        message: String,
     },
     ApplicationError {
-        message: String
-    }
+        message: String,
+    },
 }
 
 pub trait VirtualAccountProvider {}

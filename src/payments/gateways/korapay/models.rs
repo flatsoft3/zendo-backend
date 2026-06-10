@@ -2,11 +2,7 @@ use serde::{Serialize, Deserialize};
 use rust_decimal::Decimal;
 
 //requests
-#[derive(Debug, Serialize)]
-pub struct Customer {
-   pub name: String,
-   pub email: Option<String>
-}
+
 
 #[derive(Debug, Serialize)]
 pub struct Kyc {
@@ -20,20 +16,10 @@ pub struct CreateVirtualAccountRequest {
     account_reference: String,
     permanent: bool,
     bank_code: String,
-    customer: Customer,
+    // customer: Customer,
     kyc: Kyc
 }
 
-#[derive(Debug, Serialize)]
-pub struct InitializePaymentRequest {
-    pub amount: u64,
-    pub redirect_url: String,
-    pub currency: String,
-    pub reference: String,
-    pub channels: Vec<String>,
-    pub customer: Customer,
-    pub merchant_bears_cost: bool,
-} 
 
 
 //responses
