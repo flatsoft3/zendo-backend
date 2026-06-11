@@ -96,19 +96,15 @@ impl CardPaymentGateway for Korapay {
         let gateway_response: InitiatePaymentResponse = http_response.json().await?;
 
         match gateway_response.data {
-            None => {
-                return Ok(InitiateCardPaymentResponse::GatewayError {
-                    message: gateway_response.message,
-                });
-            }
+            None => Ok(InitiateCardPaymentResponse::GatewayError {
+                message: gateway_response.message,
+            }),
 
-            Some(data) => {
-                return Ok(InitiateCardPaymentResponse::Initiated {
-                    reference: data.reference,
-                    checkout_url: data.checkout_url,
-                    gateway_reference: None,
-                });
-            }
+            Some(data) => Ok(InitiateCardPaymentResponse::Initiated {
+                reference: data.reference,
+                checkout_url: data.checkout_url,
+                gateway_reference: None,
+            }),
         }
     }
 

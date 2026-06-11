@@ -1,15 +1,10 @@
 use crate::{
-    auth::{extractor::AuthUser, jwt::JwtUtil},
-    common::{
-        structs::ApiResponse,
-        util::{self, verify_password},
-    },
-    dtos::{
+    auth::{extractor::AuthUser, jwt::JwtUtil}, common::{
+        error::AppError, structs::ApiResponse, util::{self, verify_password}
+    }, dtos::{
         requests::{CreateUserRequest, LoginRequest, UpdateCompanyRequest},
         responses::{CompanyDetailsResponse, LoginResponse, UserCreatedResponse},
-    },
-    common::error::AppError,
-    state::AppState,
+    }, payments::routes::initiate_payment_route, state::AppState
 };
 use axum::{
     Json, Router,
@@ -111,6 +106,7 @@ async fn login(
                 )
                 .as_str(),
                 "basic_user",
+                &user.email
             )
             .map_err(|_| AppError::internal("Failed to generate token"))?;
 
@@ -176,4 +172,6 @@ pub fn router() -> Router<AppState> {
         .route("/users/login", post(login))
         .route("/users/profile", get(profile))
         .route("/users/company-details/update", put(update_company_details))
+        
+        .route("/users/payments/initiate", post(initiate_payment_route::initiate_payment))
 }

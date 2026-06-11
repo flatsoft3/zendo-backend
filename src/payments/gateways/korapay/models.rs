@@ -25,7 +25,6 @@ pub struct CreateVirtualAccountRequest {
 //responses
 
 
-
 #[derive(Debug, Deserialize)]
 pub struct WebhookNotificationPayload {
     pub event: String,
