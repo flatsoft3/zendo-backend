@@ -168,9 +168,10 @@ impl Payment {
         let mut attempts = 0;
 
         loop {
-            let mut rng = rand::thread_rng();
-
-            let new_reference = format!("ZNDPT{}", rng.gen_range(10_000_000u64..99_999_999u64));
+            let new_reference = {
+                let mut rng = rand::thread_rng();
+                format!("ZNDPT{}", rng.gen_range(10_000_000u64..99_999_999u64))
+            }; // rng is dropped here, before the .await
 
             match Payment::find_by_reference(db_pool, &new_reference).await? {
                 Some(_) => {
