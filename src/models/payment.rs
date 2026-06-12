@@ -1,4 +1,7 @@
-use crate::common::{enums::{Currency, PaymentStatus}, error::AppError};
+use crate::common::{
+    enums::{Currency, PaymentStatus},
+    error::AppError,
+};
 use chrono::{DateTime, Utc};
 use rand::Rng;
 use rust_decimal::Decimal;
@@ -19,6 +22,7 @@ pub struct Payment {
     pub reference: String,
     pub status: String,
     pub description: Option<String>,
+    pub gateway: Option<String>,
     pub gateway_reference: Option<String>,
     pub paid_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
@@ -35,6 +39,7 @@ impl Payment {
         currency: Currency,
         reference: &str,
         description: Option<&str>,
+        gateway: Option<&str>,
     ) -> Result<Self, AppError> {
         sqlx::query_as!(
             Payment,
@@ -46,9 +51,10 @@ impl Payment {
                 amount, 
                 currency,
                 reference, 
-                description
+                description,
+                gateway
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *
             "#,
             id,
@@ -57,7 +63,8 @@ impl Payment {
             amount,
             currency.as_ref(),
             reference,
-            description
+            description,
+            gateway
         )
         .fetch_one(db_pool)
         .await
@@ -164,7 +171,7 @@ impl Payment {
         })
     }
 
-   pub async fn generate_reference(db_pool: &PgPool) -> Result<String, AppError> {
+    pub async fn generate_reference(db_pool: &PgPool) -> Result<String, AppError> {
         let mut attempts = 0;
 
         loop {
@@ -183,7 +190,6 @@ impl Payment {
                         ));
                     }
                 }
-
                 None => return Ok(new_reference),
             }
         }

@@ -1,6 +1,12 @@
 use serde::Deserialize;
 
 #[derive(Debug, Clone, Deserialize)]
+pub struct Payment {
+    pub minimum_amount_to_initiate: u64,
+    pub redirect_url: String
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct KorapayConfig {
     pub allowed_channels : String,
     pub create_virtual_account_url: String,
@@ -17,7 +23,8 @@ pub struct AppConfig{
     pub app_url: String,
     pub jwt_user_key: String,
     pub jwt_expiry: u32,
-    pub korapay: KorapayConfig
+    pub korapay: KorapayConfig,
+    pub payment: Payment
 }
 
 impl AppConfig {

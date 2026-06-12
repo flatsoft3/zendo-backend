@@ -9,6 +9,7 @@ CREATE TABLE payments (
     status              VARCHAR(255)    NOT NULL DEFAULT 'pending',
     description         VARCHAR(255),
     gateway_reference   VARCHAR(255),
+    gateway             VARCHAR(255),
     paid_at             TIMESTAMPTZ,
     created_at          TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

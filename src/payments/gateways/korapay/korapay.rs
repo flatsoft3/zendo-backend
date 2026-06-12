@@ -10,7 +10,7 @@ use async_trait::async_trait;
 
 use serde::{Deserialize, Serialize};
 
-pub struct Korapay {
+pub struct KorapayGateway {
     config: KorapayConfig,
 }
 
@@ -45,20 +45,20 @@ struct InitiatePaymentData {
     pub checkout_url: String,
 }
 
-impl Korapay {
-    fn new(config: KorapayConfig) -> Self {
+impl KorapayGateway {
+  pub  fn new(config: KorapayConfig) -> Self {
         Self { config }
     }
 }
 
-impl PaymentGateway for Korapay {
+impl PaymentGateway for KorapayGateway {
     fn name() -> &'static str {
         "Korapay"
     }
 }
 
 #[async_trait]
-impl CardPaymentGateway for Korapay {
+impl CardPaymentGateway for KorapayGateway {
     async fn initiate_card_payment(
         &self,
         request: InitiateCardPaymentRequest,
@@ -66,7 +66,7 @@ impl CardPaymentGateway for Korapay {
         let initiate_payment_payload = InitializePaymentRequest {
             amount: request.amount,
             redirect_url: request.redirect_url,
-            currency: request.currency,
+            currency: request.currency.to_string(),
             reference: request.reference,
             channels: self
                 .config
@@ -110,7 +110,7 @@ impl CardPaymentGateway for Korapay {
 
     async fn check_payment_status(
         &self,
-        reference: String,
+        _reference: String,
     ) -> Result<PaymentStatusResponse, AppError> {
         Ok(PaymentStatusResponse::ReferenceNotFound)
     }

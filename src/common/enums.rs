@@ -1,12 +1,13 @@
 use serde::{Deserialize, Serialize};
+use strum::Display;
 
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize,  Debug, Clone, Copy, Display, PartialEq, Eq, strum::AsRefStr)]
 pub enum PaymentGateway {
     Korapay
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, Copy, PartialEq, Eq, strum::AsRefStr)]
+#[derive(Deserialize, Serialize, Debug, Clone, Copy, Display, PartialEq, Eq, strum::AsRefStr)]
 pub enum Currency {
     #[strum(serialize = "NGN")]
     NGN

@@ -1,4 +1,4 @@
-use crate::common::error::AppError;
+use crate::common::{enums::Currency, error::AppError};
 use async_trait::async_trait;
 
 #[async_trait]
@@ -30,9 +30,9 @@ pub enum PaymentStatusResponse {
 
 pub struct InitiateCardPaymentRequest {
     pub amount: u64,
-    pub currency: String,
+    pub currency: Currency,
     pub reference: String,
-    pub charges_bearer: bool,
+    pub customer_bears_charges: bool,
     pub email: String,
     pub redirect_url: String,
     pub payer_name: Option<String>,
