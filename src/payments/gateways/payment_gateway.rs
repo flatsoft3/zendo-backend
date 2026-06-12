@@ -1,5 +1,6 @@
 use crate::common::{enums::Currency, error::AppError};
 use async_trait::async_trait;
+use serde::Serialize;
 
 #[async_trait]
 pub trait CardPaymentGateway {
@@ -38,6 +39,7 @@ pub struct InitiateCardPaymentRequest {
     pub payer_name: Option<String>,
 }
 
+#[derive(Serialize)]
 pub enum InitiateCardPaymentResponse {
     Initiated {
         reference: String,

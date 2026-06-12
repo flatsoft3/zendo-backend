@@ -9,6 +9,7 @@ use crate::{
 use async_trait::async_trait;
 
 use serde::{Deserialize, Serialize};
+use serde_json;
 
 pub struct KorapayGateway {
     config: KorapayConfig,
@@ -75,11 +76,16 @@ impl CardPaymentGateway for KorapayGateway {
                 .map(|x| x.to_string())
                 .collect(),
             customer: Customer {
-                name: None,
+                name: request.payer_name,
                 email: request.email,
             },
             merchant_bears_cost: true,
         };
+
+        tracing::debug!(
+            payload = %serde_json::to_string(&initiate_payment_payload).unwrap_or_default(),
+            "Sending initiate card payment request to Korapay"
+        );
 
         let http_client = reqwest::Client::new();
         let http_response = http_client
@@ -93,7 +99,18 @@ impl CardPaymentGateway for KorapayGateway {
             .await
             .unwrap();
 
-        let gateway_response: InitiatePaymentResponse = http_response.json().await?;
+        let response_bytes = http_response.bytes().await?;
+
+        let gateway_response: InitiatePaymentResponse =
+            serde_json::from_slice(&response_bytes).map_err(|e| {
+                let raw = String::from_utf8_lossy(&response_bytes);
+                tracing::error!(
+                    error = %e,
+                    raw_body = %raw,
+                    "Failed to decode Korapay response"
+                );
+                AppError::bad_gateway(format!("Failed to decode gateway response: {}", e))
+            })?;
 
         match gateway_response.data {
             None => Ok(InitiateCardPaymentResponse::GatewayError {

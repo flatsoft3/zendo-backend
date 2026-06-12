@@ -7,8 +7,7 @@ use crate::{
     payments::gateways::{
         korapay::korapay::KorapayGateway,
         payment_gateway::{
-            self, CardPaymentGateway, InitiateCardPaymentRequest, InitiateCardPaymentResponse,
-            PaymentGateway,
+            CardPaymentGateway, InitiateCardPaymentRequest, InitiateCardPaymentResponse,
         },
     },
     state::AppState,
@@ -58,13 +57,13 @@ pub async fn initiate_payment(
 
                 Ok(payment) => {
                     //payment created, lets initiate it
-                    let payment_gateway: Box<dyn CardPaymentGateway> = match request_payload.gateway
-                    {
-                        common::enums::PaymentGateway::Korapay => {
-                            Box::new(KorapayGateway::new(state.config.korapay))
-                        }
-                        _ => Box::new(KorapayGateway::new(state.config.korapay)),
-                    };
+                    let payment_gateway: Box<dyn CardPaymentGateway + Send + Sync> =
+                        match request_payload.gateway {
+                            common::enums::PaymentGateway::Korapay => {
+                                Box::new(KorapayGateway::new(state.config.korapay))
+                            }
+                            _ => Box::new(KorapayGateway::new(state.config.korapay)),
+                        };
 
                     let request = InitiateCardPaymentRequest {
                         amount: request_payload.amount,
@@ -79,34 +78,19 @@ pub async fn initiate_payment(
                     match payment_gateway.initiate_card_payment(request).await {
                         Err(e) => Err(e),
                         Ok(InitiateCardPaymentResponse::Initiated {
-                            reference,
+                            reference: _,
                             checkout_url,
                             gateway_reference,
                         }) => {
-                            // save this to initiated payment table
-
-                            let mut payload = serde_json::Map::new();
-
-                            payload.insert("amount".to_string(), json!(&payment.amount));
-                            payload.insert("reference".to_string(), json!(reference));
-                            payload.insert("checkout_url".to_string(), json!(checkout_url));
-                            payload.insert("gateway".to_string(), json!(request_payload.gateway));
-                            payload
-                                .insert("gateway_reference".to_string(), json!(gateway_reference));
-
-                            let json_string = serde_json::to_string(&payload).unwrap();
-
-                            let response: ApiResponse<String> = ApiResponse::success(
+                            let response: ApiResponse<serde_json::Value> = ApiResponse::success(
                                 "Payment created",
-                                Some(
-                                    json_string
-                                        // HashMap::from([
-                                        //     ("key1", "value1"),
-                                        //     ("key2", "value2"),
-                                        //     ("key2", payment.amount),
-                                        // ])
-                                        .into(),
-                                ),
+                                Some(json!({
+                                    "payment_id": payment.id,
+                                    "reference": payment.reference,
+                                    "amount": payment.amount,
+                                    "checkout_url": checkout_url,
+                                    "gateway_reference": gateway_reference,
+                                })),
                             );
 
                             Ok((StatusCode::OK, Json(response)))
