@@ -2,19 +2,20 @@ use std::str::FromStr;
 
 use crate::{
     auth::jwt::{Claims, JwtUtil},
+    common::error::AppError,
     config::AppConfig,
-    error::AppError,
     state::AppState,
-}; 
+};
 use axum::extract::FromRequestParts;
+use axum::http::request::Parts;
 use jsonwebtoken::dangerous::insecure_decode;
-use axum::{ http::request::Parts};
 use uuid::Uuid;
 
 pub struct AuthUser {
     pub user_id: Uuid,
     pub full_name: String,
     pub user_type: String,
+    pub email: String,
 }
 
 // ✅ no #[async_trait] needed in axum 0.8!
@@ -49,6 +50,7 @@ impl FromRequestParts<AppState> for AuthUser {
                 user_id: Uuid::from_str(&claims.sub).unwrap(),
                 full_name: claims.full_name,
                 user_type: claims.user_type,
+                email: claims.email,
             })
         }
     }

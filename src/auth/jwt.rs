@@ -2,7 +2,7 @@ use chrono::{DateTime, Duration, Utc};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use serde::{Deserialize, Serialize};
 
-use crate::error::AppError;
+use crate::common::error::AppError;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Claims {
@@ -13,6 +13,7 @@ pub struct Claims {
 
     pub full_name: String,
     pub user_type: String,
+    pub email: String,
 }
 
 pub struct JwtUtil {}
@@ -25,6 +26,7 @@ impl JwtUtil {
         user_id: &str,
         full_name: &str,
         user_type: &str,
+        email: &str,
     ) -> Result<String, AppError> {
         let expiration = exp.map(|seconds| {
             Utc::now()
@@ -40,6 +42,7 @@ impl JwtUtil {
             iat: Utc::now(),
             full_name: full_name.to_string(),
             user_type: user_type.to_string(),
+            email: email.to_string()
         };
 
         encode(

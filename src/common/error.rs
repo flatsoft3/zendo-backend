@@ -32,6 +32,17 @@ impl AppError {
             validation_errors: None,
         }
     }
+
+
+    pub fn bad_gateway(message: impl Into<String>) -> Self {
+       Self {
+            status: StatusCode::BAD_GATEWAY,
+            message: message.into(),
+            validation_errors: None,
+        }
+    }
+
+
     pub fn internal(message: impl Into<String>) -> Self {
         Self {
             status: StatusCode::INTERNAL_SERVER_ERROR,
@@ -49,7 +60,7 @@ impl AppError {
 
     pub fn validation_error(errors: ValidationErrors) -> Self {
         Self {
-            status: StatusCode::BAD_REQUEST,
+            status: StatusCode::UNPROCESSABLE_ENTITY,
             message: "Data validation failed".to_string(),
             validation_errors: Some(Self::format_validation_errors(&errors)),
         }
@@ -107,3 +118,12 @@ impl From<jsonwebtoken::errors::Error> for AppError {
         AppError::internal(error.to_string())
     }
 }
+
+
+impl From<reqwest::Error> for AppError {
+    fn from(error: reqwest::Error) -> Self {
+        AppError::bad_gateway(error.to_string())
+    }
+}
+
+

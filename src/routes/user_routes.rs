@@ -1,15 +1,10 @@
 use crate::{
-    auth::{extractor::AuthUser, jwt::JwtUtil},
-    common::{
-        structs::ApiResponse,
-        util::{self, verify_password},
-    },
-    dtos::{
+    auth::{extractor::AuthUser, jwt::JwtUtil}, common::{
+        error::AppError, structs::ApiResponse, util::{self, verify_password}
+    }, dtos::{
         requests::{CreateUserRequest, LoginRequest, UpdateCompanyRequest},
         responses::{CompanyDetailsResponse, LoginResponse, UserCreatedResponse},
-    },
-    error::AppError,
-    state::AppState,
+    }, payments::routes::{create_payment_route, initiate_payment_route}, state::AppState
 };
 use axum::{
     Json, Router,
@@ -22,6 +17,7 @@ use validator::Validate;
 
 use crate::models::user::User;
 use uuid::Uuid;
+use crate::payments::routes::{create_wallet_route, get_user_wallets_route};
 
 async fn find_by_id(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
     let user_id = Uuid::nil();
@@ -69,7 +65,7 @@ async fn create(
                         Some(new_user.into()),
                     );
 
-                    Ok((StatusCode::OK, Json(response)))
+                    Ok((StatusCode::CREATED, Json(response)))
                 }
                 Err(e) => Err(e),
             }
@@ -111,6 +107,7 @@ async fn login(
                 )
                 .as_str(),
                 "basic_user",
+                &user.email
             )
             .map_err(|_| AppError::internal("Failed to generate token"))?;
 
@@ -176,4 +173,10 @@ pub fn router() -> Router<AppState> {
         .route("/users/login", post(login))
         .route("/users/profile", get(profile))
         .route("/users/company-details/update", put(update_company_details))
+        
+        .route("/users/payments/create", post(create_payment_route::create_payment))
+        .route("/users/payments/initiate", post(initiate_payment_route::initiate_payment))
+
+        .route("/users/payments/wallets", get(get_user_wallets_route::get_wallets))
+        .route("/users/payments/wallets/create", post(create_wallet_route::create_wallet))
 }
