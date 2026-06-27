@@ -1,3 +1,4 @@
+use crate::models::wallet::Wallet;
 use crate::{
     auth::extractor::AuthUser,
     common::{enums::Currency, error::AppError, structs::ApiResponse},
@@ -27,23 +28,33 @@ pub async fn create_payment(
         .validate()
         .map_err(|e| AppError::validation_error(e))?;
 
-    let reference = Payment::generate_reference(&state.db_pool).await?;
+    match Wallet::find_by_id(&state.db_pool, &payload.wallet_id).await? {
+        None => Err(AppError::not_found("Wallet is not found")),
+        Some(wallet) => {
+            if wallet.user_id != auth_user.user_id {
+                return Err(AppError::not_found("Wallet does not belong to the user"));
+            } else if !wallet.is_active {
+                return Err(AppError::not_found("Wallet is inactive"));
+            }
+            let reference = Payment::generate_reference(&state.db_pool).await?;
 
-    let payment = Payment::create(
-        &state.db_pool,
-        Uuid::new_v4(),
-        auth_user.user_id,
-        payload.wallet_id,
-        payload.amount.into(),
-        payload.currency,
-        &reference,
-        payload.description.as_deref(),
-        None, // no gateway yet at creation time
-    )
-    .await?;
+            let payment = Payment::create(
+                &state.db_pool,
+                Uuid::new_v4(),
+                auth_user.user_id,
+                payload.wallet_id,
+                payload.amount.into(),
+                payload.currency,
+                &reference,
+                payload.description.as_deref(),
+                None, // no gateway yet at creation time
+            )
+            .await?;
 
-    let response: ApiResponse<Payment> =
-        ApiResponse::success("Payment created successfully", Some(payment));
+            let response: ApiResponse<Payment> =
+                ApiResponse::success("Payment created successfully", Some(payment));
 
-    Ok((StatusCode::CREATED, Json(response)))
+            Ok((StatusCode::CREATED, Json(response)))
+        }
+    }
 }

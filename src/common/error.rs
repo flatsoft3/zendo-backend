@@ -60,7 +60,7 @@ impl AppError {
 
     pub fn validation_error(errors: ValidationErrors) -> Self {
         Self {
-            status: StatusCode::BAD_REQUEST,
+            status: StatusCode::UNPROCESSABLE_ENTITY,
             message: "Data validation failed".to_string(),
             validation_errors: Some(Self::format_validation_errors(&errors)),
         }

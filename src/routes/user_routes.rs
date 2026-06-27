@@ -17,6 +17,7 @@ use validator::Validate;
 
 use crate::models::user::User;
 use uuid::Uuid;
+use crate::payments::routes::{create_wallet_route, get_user_wallets_route};
 
 async fn find_by_id(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
     let user_id = Uuid::nil();
@@ -64,7 +65,7 @@ async fn create(
                         Some(new_user.into()),
                     );
 
-                    Ok((StatusCode::OK, Json(response)))
+                    Ok((StatusCode::CREATED, Json(response)))
                 }
                 Err(e) => Err(e),
             }
@@ -175,4 +176,7 @@ pub fn router() -> Router<AppState> {
         
         .route("/users/payments/create", post(create_payment_route::create_payment))
         .route("/users/payments/initiate", post(initiate_payment_route::initiate_payment))
+
+        .route("/users/payments/wallets", get(get_user_wallets_route::get_wallets))
+        .route("/users/payments/wallets/create", post(create_wallet_route::create_wallet))
 }
