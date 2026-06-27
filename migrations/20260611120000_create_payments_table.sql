@@ -6,12 +6,13 @@ CREATE TABLE payments (
     amount              NUMERIC(15, 2)  NOT NULL,
     currency            CHAR(3)         NOT NULL,
     reference           VARCHAR(100)    NOT NULL UNIQUE,
-    status              VARCHAR(255)    NOT NULL DEFAULT 'pending',
+    status              VARCHAR(255)    NOT NULL DEFAULT 'Pending',
     description         VARCHAR(255),
     gateway_reference   VARCHAR(255),
     gateway             VARCHAR(255),
     paid_at             TIMESTAMPTZ,
-    created_at          TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at          TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMPTZ    
 );
 
 CREATE INDEX idx_payments_user_id   ON payments(user_id);

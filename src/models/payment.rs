@@ -26,6 +26,7 @@ pub struct Payment {
     pub gateway_reference: Option<String>,
     pub paid_at: Option<DateTime<Utc>>,
     pub created_at: DateTime<Utc>,
+    pub updated_at: Option<DateTime<Utc>>,
 }
 
 impl Payment {

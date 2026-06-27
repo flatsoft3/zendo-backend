@@ -4,7 +4,7 @@ use crate::{
     }, dtos::{
         requests::{CreateUserRequest, LoginRequest, UpdateCompanyRequest},
         responses::{CompanyDetailsResponse, LoginResponse, UserCreatedResponse},
-    }, payments::routes::initiate_payment_route, state::AppState
+    }, payments::routes::{create_payment_route, initiate_payment_route}, state::AppState
 };
 use axum::{
     Json, Router,
@@ -173,5 +173,6 @@ pub fn router() -> Router<AppState> {
         .route("/users/profile", get(profile))
         .route("/users/company-details/update", put(update_company_details))
         
+        .route("/users/payments/create", post(create_payment_route::create_payment))
         .route("/users/payments/initiate", post(initiate_payment_route::initiate_payment))
 }

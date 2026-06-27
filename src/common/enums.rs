@@ -7,7 +7,7 @@ pub enum PaymentGateway {
     Korapay
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, Copy, Display, PartialEq, Eq, strum::AsRefStr)]
+#[derive(Deserialize, Serialize, Debug, Clone, Copy, Display, PartialEq, Eq, strum::AsRefStr, strum::EnumString)]
 pub enum Currency {
     #[strum(serialize = "NGN")]
     NGN
