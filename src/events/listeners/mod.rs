@@ -1,0 +1,1 @@
+pub mod create_main_wallet_after_user_registered;

@@ -12,6 +12,9 @@ use zendo::{db::postgres, state::AppState};
 use chrono::Local;
 use std::path::Path;
 use zendo::config::AppConfig;
+use zendo::events::events_bus::EventsBus;
+use zendo::events::listeners::create_main_wallet_after_user_registered;
+use zendo::events::user_registered::UserRegisteredEventBus;
 
 #[tokio::main]
 async fn main() {
@@ -38,12 +41,23 @@ async fn main() {
         env = %config.app_env,
         "Configuration loaded"
     );
-
+    
+    //events
+    let user_registered_event_bus = UserRegisteredEventBus::new();
+    
+    //a general wrapper for all events, for easy pub/sub, everywhere
+    let events_bus: EventsBus = EventsBus::new(user_registered_event_bus);
+    
+    
     let state = AppState {
         config: config.clone(),
-        db_pool: postgres::get_connection(&config).await
+        db_pool: postgres::get_connection(&config).await,
+        events_bus
     };
-
+    
+    //spawn event listeners
+    tokio::spawn(create_main_wallet_after_user_registered::listen_to_user_registered_event(state.clone()));
+    
     // let app = Router::new().merge(routes::router()).with_state(state);
     let app = axum::Router::new()
         .merge(zendo::routes::router())

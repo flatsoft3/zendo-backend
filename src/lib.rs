@@ -7,3 +7,4 @@ pub mod common;
 pub mod auth;
 pub mod db;
 pub mod payments;
+pub mod events;
