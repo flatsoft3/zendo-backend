@@ -71,7 +71,7 @@ impl Wallet {
             r#"
             SELECT * 
             FROM  wallets 
-            WHERE user_id = $1 AND name = $2
+            WHERE user_id = $1 AND name ILIKE $2
             "#,
             user_id,
             name

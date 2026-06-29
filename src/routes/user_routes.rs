@@ -17,6 +17,7 @@ use validator::Validate;
 
 use crate::models::user::User;
 use uuid::Uuid;
+use crate::events::user_registered::UserRegisteredEvent;
 use crate::payments::routes::{create_wallet_route, get_user_wallets_route};
 
 async fn find_by_id(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
@@ -62,8 +63,11 @@ async fn create(
                 Ok(new_user) => {
                     let response: ApiResponse<UserCreatedResponse> = ApiResponse::success(
                         "User was created successfully",
-                        Some(new_user.into()),
+                        Some(new_user.clone().into()),
                     );
+
+                    //publish user created event
+                    state.events_bus.user_registered_event_bus.publish(UserRegisteredEvent {user: new_user});
 
                     Ok((StatusCode::CREATED, Json(response)))
                 }
