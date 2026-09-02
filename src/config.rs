@@ -14,6 +14,30 @@ pub struct KorapayConfig {
     pub check_payment_status_url: String,
     pub secret_key: String,
 }
+
+#[derive(Debug, Clone, Copy, Deserialize)]
+pub enum TlsStrategy {
+    Plain,
+    StartTls,
+    ImplicitTls,
+}
+
+impl Default for TlsStrategy {
+    fn default() -> Self {
+        Self::StartTls  // Most common default
+    }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct SmtpConfig {
+    pub host:     String,
+    pub port:     u16,
+    pub username: String,
+    pub password: String,
+    pub from:     String,
+    pub tls_strategy: Option<TlsStrategy>
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct AppConfig{
     pub app_name: String,
@@ -24,7 +48,8 @@ pub struct AppConfig{
     pub jwt_user_key: String,
     pub jwt_expiry: u32,
     pub korapay: KorapayConfig,
-    pub payment: Payment
+    pub payment: Payment,
+    pub smtp_config: SmtpConfig
 }
 
 impl AppConfig {

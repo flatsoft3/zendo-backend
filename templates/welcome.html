@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<p class='email-greeting'>Hi {{name}},</p>
+
+<!-- INSERT HEADING HERE -->
+<h1 class='email-heading'>Welcome to ZendoSMS! 🎉 </h1>
+
+<p class='email-text'>
+    We're excited to have you on board.
+</p>
+
+<p class='email-text'>
+    Your account has been successfully created, and you're now ready to start sending SMS messages with ease. Whether you're
+    reaching customers, sending notifications, or running marketing campaigns, we're here to help you communicate more
+    effectively.
+</p>
+
+<p class='email-text'>Please click the link below to verify your email address</p>
+<div class='email-cta-wrap'>
+    <a href='{{verify_email_url}}' class='email-cta'>Verify Email</a>
+</div>
+
+
+<p class='email-text'>
+    Thank you for choosing ZendoSMS. We look forward to helping you connect with your audience.
+</p>
+
+{% endblock %}

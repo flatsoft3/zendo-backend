@@ -1,1 +1,2 @@
 pub mod create_main_wallet_after_user_registered;
+pub mod send_welcome_email_after_user_registered;

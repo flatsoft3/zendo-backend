@@ -48,7 +48,7 @@ impl User {
     }
 
     pub async fn find_by_email(db_pool: &PgPool, email: &str) -> Result<Option<Self>, sqlx::Error> {
-       sqlx::query_as!(
+        sqlx::query_as!(
             User,
             r#"
                 SELECT *
@@ -62,20 +62,20 @@ impl User {
         .await
     }
 
-   pub async fn create(
-    db_pool: &PgPool,
-    id: Uuid,
-    email: &str,
-    first_name: &str,
-    middle_name: Option<&str>,
-    last_name: &str,
-    phone_number: &str,
-    password: &str,
-    password_reset_token: Option<&str>,
-) -> Result<Self, AppError> {
-    match sqlx::query_as!(
-        User,
-        r#"
+    pub async fn create(
+        db_pool: &PgPool,
+        id: Uuid,
+        email: &str,
+        first_name: &str,
+        middle_name: Option<&str>,
+        last_name: &str,
+        phone_number: &str,
+        password: &str,
+        password_reset_token: Option<&str>,
+    ) -> Result<Self, AppError> {
+        match sqlx::query_as!(
+            User,
+            r#"
         INSERT INTO users (
             id,
             email,
@@ -91,22 +91,22 @@ impl User {
         )
         RETURNING *
         "#,
-        id,
-        email,
-        first_name,
-        middle_name,
-        last_name,
-        phone_number,
-        password,
-        password_reset_token,
-    )
-    .fetch_one(db_pool)
-    .await
-    {
-        Ok(new_user) => Ok(new_user),
-        Err(e) => Err(AppError::from(e)),
+            id,
+            email,
+            first_name,
+            middle_name,
+            last_name,
+            phone_number,
+            password,
+            password_reset_token,
+        )
+        .fetch_one(db_pool)
+        .await
+        {
+            Ok(new_user) => Ok(new_user),
+            Err(e) => Err(AppError::from(e)),
+        }
     }
-}
 
     pub async fn update_company_details(
         db_pool: &PgPool,
@@ -142,5 +142,14 @@ impl User {
             Err(sqlx::Error::RowNotFound) => Err(AppError::not_found("User not found")),
             Err(e) => Err(AppError::from(e)),
         }
+    }
+
+    pub fn get_full_name(&self) -> String {
+       return format!(
+            "{} {} {}",
+            &self.first_name,
+            &self.middle_name.as_deref().unwrap_or_default(),
+            &self.last_name
+        );
     }
 }

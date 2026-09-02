@@ -25,3 +25,6 @@ validator = { version = "0.20.0", features = ["derive"] }
 rust_decimal = {version = "1.42.0", features = ["serde-float"] }
 reqwest = { version = "0.13.4", features = ["json", "rustls"] }
 strum = { version = "0.26", features = ["derive"] }
+lettre = { version = "0.11", features = ["smtp-transport", "tokio1-native-tls", "builder"] }
+askama = "0.16.0"
+css-inline = "0.21.0"
