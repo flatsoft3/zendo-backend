@@ -126,4 +126,22 @@ impl From<reqwest::Error> for AppError {
     }
 }
 
+impl From<lettre::address::AddressError> for AppError {
+    fn from(error: lettre::address::AddressError) -> Self {
+        AppError::bad_request(error.to_string())
+    }
+}
+
+impl From<lettre::error::Error> for AppError {
+    fn from(error: lettre::error::Error) -> Self {
+        AppError::bad_request(error.to_string())
+    }
+} 
+
+impl From<lettre::transport::smtp::Error> for AppError {
+    fn from(error: lettre::transport::smtp::Error) -> Self {
+        AppError::bad_request(error.to_string())
+    }
+}
+
 

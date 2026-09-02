@@ -103,13 +103,7 @@ async fn login(
             Some(state.config.jwt_expiry as usize),
                 &state.config.jwt_user_key,
                 &user.id.to_string(),
-                format!(
-                    "{} {} {}",
-                    &user.first_name,
-                    &user.middle_name.as_deref().unwrap_or_default(),
-                    &user.last_name
-                )
-                .as_str(),
+                &user.get_full_name(),
                 "basic_user",
                 &user.email
             )

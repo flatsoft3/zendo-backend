@@ -6,6 +6,7 @@ use uuid::Uuid;
 pub async fn listen_to_user_registered_event(state: AppState) {
     let mut rx = state.events_bus.user_registered_event_bus.subscribe();
     while let Ok(event) = rx.recv().await {
+        tracing::info!("creating user main wallet after signup ");
         match Wallet::create(
             &state.db_pool,
             Uuid::new_v4(),
@@ -15,9 +16,9 @@ pub async fn listen_to_user_registered_event(state: AppState) {
         )
         .await
         {
-            Ok(_) => println!("created user main wallet"),
+            Ok(_) => tracing::info!("created user main wallet"),
             Err(e) => {
-                println!("{}", format!("Failed to create user wallet, {:#?}", e))
+                tracing::error!("{}", format!("Failed to create user wallet, {:#?}", e))
             }
         }
     }
