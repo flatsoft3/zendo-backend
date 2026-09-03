@@ -49,7 +49,8 @@ pub struct AppConfig{
     pub jwt_expiry: u32,
     pub korapay: KorapayConfig,
     pub payment: Payment,
-    pub smtp_config: SmtpConfig
+    pub smtp_config: SmtpConfig,
+    pub redis_url: String
 }
 
 impl AppConfig {
