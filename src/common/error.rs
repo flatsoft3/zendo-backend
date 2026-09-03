@@ -4,6 +4,7 @@ use axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
 };
+use redis::RedisError;
 
 use crate::common::structs::ApiResponse;
 use validator::{ValidationErrors, ValidationErrorsKind};
@@ -141,6 +142,13 @@ impl From<lettre::error::Error> for AppError {
 impl From<lettre::transport::smtp::Error> for AppError {
     fn from(error: lettre::transport::smtp::Error) -> Self {
         AppError::bad_request(error.to_string())
+    }
+}
+
+impl From<RedisError> for AppError {
+    fn from(error: RedisError) -> Self {
+        tracing::error!("Redis error occurred: {}", error);
+        AppError::bad_request("An application error occurred")
     }
 }
 

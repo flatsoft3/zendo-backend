@@ -15,7 +15,9 @@ use chrono::Local;
 use std::path::Path;
 use zendo::config::AppConfig;
 use zendo::events::events_bus::EventsBus;
-use zendo::events::listeners::{create_main_wallet_after_user_registered, send_welcome_email_after_user_registered};
+use zendo::events::listeners::{
+    create_main_wallet_after_user_registered, send_welcome_email_after_user_registered,
+};
 use zendo::events::user_registered::UserRegisteredEventBus;
 
 #[tokio::main]
@@ -43,29 +45,37 @@ async fn main() {
         env = %config.app_env,
         "Configuration loaded"
     );
-    
+
     //events
     let user_registered_event_bus = UserRegisteredEventBus::new();
-    
+
     //a general wrapper for all events, for easy pub/sub, everywhere
     let events_bus: EventsBus = EventsBus::new(user_registered_event_bus);
-    
-    let email_service = EmailService::new(config.smtp_config.clone())
-        .expect("Failed to create new email service");
-    
+
+    let email_service =
+        EmailService::new(config.smtp_config.clone()).expect("Failed to create new email service");
+
+    let redis_client =
+        redis::Client::open(config.clone().redis_url).expect("Failed to create Redis client");
+
     let state = AppState {
         config: config.clone(),
         db_pool: postgres::get_connection(&config).await,
         events_bus,
         common_services: CommonServices {
-            email: email_service
-        }
+            email: email_service,
+        },
+        redis_client: redis_client,
     };
-    
+
     //spawn event listeners
-    tokio::spawn(create_main_wallet_after_user_registered::listen_to_user_registered_event(state.clone()));
-    tokio::spawn(send_welcome_email_after_user_registered::listen_to_user_registered_event(state.clone()));
-    
+    tokio::spawn(
+        create_main_wallet_after_user_registered::listen_to_user_registered_event(state.clone()),
+    );
+    tokio::spawn(
+        send_welcome_email_after_user_registered::listen_to_user_registered_event(state.clone()),
+    );
+
     // let app = Router::new().merge(routes::router()).with_state(state);
     let app = axum::Router::new()
         .merge(zendo::routes::router())
