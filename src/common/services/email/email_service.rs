@@ -2,8 +2,11 @@ use lettre::{
     AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor, message::header::ContentType, transport::smtp::{authentication::Credentials, client::{Tls, TlsParameters}}
 };
 
-use crate::{common::error::AppError, config::{SmtpConfig, TlsStrategy}};
+use crate::{common::{error::AppError, services::email::email_templates::EmailVerificationCodeMail}, config::{SmtpConfig, TlsStrategy}};
 use validator::ValidateEmail;
+use crate::common::services::email::email_templates::WelcomeMail; 
+use askama::Template; 
+
 
 #[derive(Debug)]
 pub enum SendEmailStatus {
@@ -64,7 +67,7 @@ impl EmailService {
         })
     }
 
-    pub async fn send_mail(&self, payload: EmailPayload) -> Result<SendEmailStatus, AppError> {
+    async fn send_mail(&self, payload: EmailPayload) -> Result<SendEmailStatus, AppError> {
         if !&payload.to.validate_email() {
             return Ok(SendEmailStatus::InvalidEmail);
         }
@@ -81,5 +84,41 @@ impl EmailService {
 
             Err(e) => Ok(SendEmailStatus::SmtpError { message: e.to_string() }),
         }
+    }
+
+    pub async  fn send_welcome_mail (&self, email: &str, fullname: &str, login_url: &str) -> Result<SendEmailStatus, AppError> {
+
+        let welcome_email = WelcomeMail {
+            name: fullname,
+            login_url: login_url,
+        };
+
+        let raw_html = welcome_email.render().unwrap(); 
+
+        let payload = EmailPayload {
+            to: email.into(),
+            subject: "Welcome to ZendoSMS!".into(),
+            body: css_inline::inline(&raw_html).unwrap()
+        };
+
+        self.send_mail(payload).await
+    }
+
+    pub async  fn send_email_verification_code (&self, email: &str, code: &str) -> Result<SendEmailStatus, AppError> {
+
+        let welcome_email = EmailVerificationCodeMail {
+            code: code,
+            expiry: "30 minutes"
+        };
+
+        let raw_html = welcome_email.render().unwrap(); 
+
+        let payload = EmailPayload {
+            to: email.into(),
+            subject: "ZendoSMS - Email Verification Code".into(),
+            body: css_inline::inline(&raw_html).unwrap()
+        };
+
+        self.send_mail(payload).await
     }
 }

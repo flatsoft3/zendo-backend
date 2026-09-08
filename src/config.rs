@@ -45,6 +45,7 @@ pub struct AppConfig{
     pub app_port: u16,
     pub database_url: String,
     pub app_url: String,
+    pub app_frontend_users_url: String,
     pub jwt_user_key: String,
     pub jwt_expiry: u32,
     pub korapay: KorapayConfig,

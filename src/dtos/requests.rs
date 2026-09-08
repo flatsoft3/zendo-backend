@@ -23,6 +23,11 @@ pub struct CreateUserRequest {
         message = "Password must be at least 8 characters"
     ))]
     pub password: String,
+   #[validate(length(
+        min = 6,
+        message = "Email verification code must be at least 6 characters"
+    ))]
+    pub email_verification_code: String
 }
 
 #[derive(serde::Deserialize, Validate)]
