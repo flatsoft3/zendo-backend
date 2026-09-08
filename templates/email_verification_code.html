@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<p class='email-greeting'>Hi, your email was used to request a verification code on our platform</p>
+
+<p class='email-text'>
+    Your email verification code is
+</p>
+<!-- INSERT HEADING HERE -->
+ <h1 class='email-heading'>{{ code }}</h1>
+
+<p class='email-text'>
+    The codes expires in {{ expiry }}.
+</p>
+
+<p class='email-text'>
+    Please do not share the code with anyone else. If you did not request this code, kindly ignore this message
+</p>
+
+
+{% endblock %}

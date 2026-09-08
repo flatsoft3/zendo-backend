@@ -1,10 +1,10 @@
 use crate::{
     auth::{extractor::AuthUser, jwt::JwtUtil}, common::{
-        error::AppError, structs::ApiResponse, util::{self, verify_password}
+        error::AppError, structs::ApiResponse, util::verify_password
     }, dtos::{
-        requests::{CreateUserRequest, LoginRequest, UpdateCompanyRequest},
+        requests::{LoginRequest, UpdateCompanyRequest},
         responses::{CompanyDetailsResponse, LoginResponse, UserCreatedResponse},
-    }, payments::routes::{create_payment_route, initiate_payment_route}, state::AppState
+    }, payments::routes::{create_payment_route, initiate_payment_route, user_signup_routes::{self, request_email_verification_code}}, state::AppState
 };
 use axum::{
     Json, Router,
@@ -16,8 +16,7 @@ use axum::{
 use validator::Validate;
 
 use crate::models::user::User;
-use uuid::Uuid;
-use crate::events::user_registered::UserRegisteredEvent;
+use uuid::Uuid; 
 use crate::payments::routes::{create_wallet_route, get_user_wallets_route};
 
 async fn find_by_id(State(state): State<AppState>) -> Result<impl IntoResponse, AppError> {
@@ -35,47 +34,6 @@ async fn find_by_id(State(state): State<AppState>) -> Result<impl IntoResponse, 
     }
 }
 
-async fn create(
-    State(state): State<AppState>,
-    Json(payload): Json<CreateUserRequest>,
-) -> Result<impl IntoResponse, AppError> {
-    payload
-        .validate()
-        .map_err(|e| AppError::validation_error(e))?;
-
-    match User::find_by_email(&state.db_pool, &payload.email).await {
-        Err(e) => Err(e.into()),
-        Ok(Some(_)) => Err(AppError::bad_request("User already exists")),
-        Ok(None) => {
-            match User::create(
-                &state.db_pool,
-                Uuid::new_v4(),
-                &payload.email,
-                &payload.first_name,
-                payload.middle_name.as_deref(),
-                &payload.last_name,
-                &payload.phone_number,
-                &util::hash_password(&payload.password),
-                None,
-            )
-            .await
-            {
-                Ok(new_user) => {
-                    let response: ApiResponse<UserCreatedResponse> = ApiResponse::success(
-                        "User was created successfully",
-                        Some(new_user.clone().into()),
-                    );
-
-                    //publish user created event
-                    state.events_bus.user_registered_event_bus.publish(UserRegisteredEvent {user: new_user});
-
-                    Ok((StatusCode::CREATED, Json(response)))
-                }
-                Err(e) => Err(e),
-            }
-        }
-    }
-}
 
 async fn login(
     State(state): State<AppState>,
@@ -122,6 +80,7 @@ async fn profile(
     State(state): State<AppState>,
     auth_user: AuthUser,
 ) -> Result<impl IntoResponse, AppError> {
+
     match User::find_by_id(&state.db_pool, auth_user.user_id).await {
         Err(e) => Err(e.into()),
         Ok(None) => Err(AppError::bad_request("User does not exists")),
@@ -165,16 +124,20 @@ async fn update_company_details(
 }
 
 pub fn router() -> Router<AppState> {
-    Router::new()
-        .route("/users/find-by-id", get(find_by_id))
-        .route("/users/create", post(create))
-        .route("/users/login", post(login))
-        .route("/users/profile", get(profile))
-        .route("/users/company-details/update", put(update_company_details))
+  let user_routes =   Router::new()
+       // .route("/find-by-id", get(find_by_id))
+        .route("/auth/signup/request-email-verification-code", post(request_email_verification_code))
+        .route("/auth/signup", post(user_signup_routes::signup))
+        .route("/auth/login", post(login))
+        .route("/profile", get(profile))
+        .route("/company-details/update", put(update_company_details))
         
-        .route("/users/payments/create", post(create_payment_route::create_payment))
-        .route("/users/payments/initiate", post(initiate_payment_route::initiate_payment))
+        .route("/payments/create", post(create_payment_route::create_payment))
+        .route("/payments/initiate", post(initiate_payment_route::initiate_payment))
 
-        .route("/users/payments/wallets", get(get_user_wallets_route::get_wallets))
-        .route("/users/payments/wallets/create", post(create_wallet_route::create_wallet))
+        .route("/payments/wallets", get(get_user_wallets_route::get_wallets))
+        .route("/payments/wallets/create", post(create_wallet_route::create_wallet));
+
+       Router::new()
+       .nest("/users", user_routes)
 }

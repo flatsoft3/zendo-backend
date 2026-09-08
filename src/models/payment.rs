@@ -5,12 +5,10 @@ use crate::common::{
 use chrono::{DateTime, Utc};
 use rand::Rng;
 use rust_decimal::Decimal;
-use serde::Serialize;
-// use rand::RngExt;
+use serde::Serialize; 
 use sqlx::PgPool;
 use uuid::Uuid;
-
-// use rand::Rng;
+ 
 
 #[derive(Debug, Serialize)]
 pub struct Payment {
