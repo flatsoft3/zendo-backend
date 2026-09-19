@@ -8,3 +8,4 @@ pub mod auth;
 pub mod db;
 pub mod payments;
 pub mod events;
+pub mod sms;

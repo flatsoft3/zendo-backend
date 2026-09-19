@@ -25,3 +25,18 @@ pub enum PaymentStatus {
     #[strum(serialize = "Reversed")]
     Reversed
 }
+
+#[derive(Display)]
+pub enum SmsType {
+    Plain,
+    UNicode,
+    Encrypted
+}
+
+#[derive(Display)]
+pub enum SmsChannel{
+    Dnd,
+    Generic,
+    Whatsapp,
+    Voice
+}

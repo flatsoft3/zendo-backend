@@ -37,6 +37,12 @@ pub struct SmtpConfig {
     pub from:     String,
     pub tls_strategy: Option<TlsStrategy>
 }
+#[derive(Debug, Clone, Deserialize)]
+pub struct TermiiSmsConfig {
+    pub api_key:     String, 
+    pub send_sms_url:     String, 
+    pub default_sender_id: String
+}
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct AppConfig{
@@ -51,7 +57,8 @@ pub struct AppConfig{
     pub korapay: KorapayConfig,
     pub payment: Payment,
     pub smtp_config: SmtpConfig,
-    pub redis_url: String
+    pub redis_url: String,
+    pub termii_sms_config: TermiiSmsConfig
 }
 
 impl AppConfig {
