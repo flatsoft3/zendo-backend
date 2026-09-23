@@ -1,5 +1,3 @@
-// use std::format;
-
 use async_trait::async_trait;
 use reqwest::StatusCode;
 use rust_decimal::Decimal;
@@ -49,20 +47,19 @@ struct TermiiSmsErrorResponse {
     field_errors: Option<Vec<FieldError>>,
 }
 
-
 #[async_trait]
 impl SmsGateway for TermiiSms {
     async fn send_sms(
         &self,
         recipients: Vec<String>,
         message: &str,
-        sender_id: &str,
+        sender_id: Option<&str>,
         sms_type: SmsType,
         sms_channel: SmsChannel,
     ) -> Result<SendSmsResponse, AppError> {
         let request_payload = json!({
             "api_key" : &self.config.api_key,
-            "from" : &self.config.default_sender_id,
+            "from" : sender_id.unwrap_or(&self.config.default_sender_id),
             "sms" : message,
             "type" : sms_type.to_string().to_lowercase(),
             "channel" : sms_channel.to_string().to_lowercase(),

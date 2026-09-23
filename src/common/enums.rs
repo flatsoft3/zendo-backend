@@ -26,14 +26,14 @@ pub enum PaymentStatus {
     Reversed
 }
 
-#[derive(Display)]
+#[derive(Display, Deserialize)]
 pub enum SmsType {
     Plain,
     UNicode,
     Encrypted
 }
 
-#[derive(Display)]
+#[derive(Display, Deserialize)]
 pub enum SmsChannel{
     Dnd,
     Generic,

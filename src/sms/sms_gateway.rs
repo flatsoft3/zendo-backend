@@ -14,7 +14,7 @@ pub trait SmsGateway {
         &self,
         recipients: Vec<String>,
         message: &str,
-        sender_id: &str,
+        sender_id: Option<&str>,
         sms_type: SmsType,
         sms_channel: SmsChannel,
     ) -> Result<SendSmsResponse, AppError>;

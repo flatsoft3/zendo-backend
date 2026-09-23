@@ -29,3 +29,4 @@ lettre = { version = "0.11", features = ["smtp-transport", "tokio1-native-tls", 
 askama = "0.16.0"
 css-inline = "0.21.0"
 redis = { version = "1.6.0", features = ["tokio-comp"] }
+regex = { version = "1.13.1"}
